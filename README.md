@@ -1,67 +1,80 @@
-NSE Indices Heatmap Dashboard
-A modern and interactive Streamlit dashboard for visualizing live NSE (National Stock Exchange of India) indices data. Get instant insights into sector-wise market trends, top gainers/losers, and concise AI-powered summaries for informed decision-making.
+# 📊 NSE Indices Heatmap Dashboard
 
-Features
-Interactive Treemaps: Visualize index composition, market cap, gainers, and losers for any major NSE index.
+An interactive Streamlit web application for visualizing the performance of National Stock Exchange (NSE) indices in India. This dashboard provides a dynamic heatmap of index constituents, real-time market insights powered by Groq AI, and a clear view of market breadth and sector performance.
 
-Advance/Decline Pie Charts: Instantly view market breadth by advances, declines, and no-change stocks.
+![Dashboard Screenshot](https://raw.githubusercontent.com/username/repo-name/main/screenshot.png) ## ✨ Features
 
-AI-Powered Market Insights: Summarized daily index outlooks via Groq API—concise, neutral, and data-driven.
+- **Dynamic Heatmaps**: Visualize the performance of stocks within an index. The size of each rectangle can represent either market capitalization or daily percentage change, while the color indicates the stock's price movement (green for gainers, red for losers).
+- **Single & Multi-Index Modes**:
+  - **Single Index**: Dive deep into a specific index with detailed data, sorting options, and a search filter.
+  - **Multi-Index Comparison**: Compare up to three different indices side-by-side to understand market trends at a glance.
+- **Real-Time Insights**: Get concise, AI-generated summaries of market performance using the **Groq API**.
+- **Market Breadth**: A dedicated pie chart shows the ratio of advancing, declining, and unchanged stocks for a quick overview of market sentiment.
+- **Total Market Overview**: For the **NIFTY TOTAL MARKET** index, the dashboard displays key aggregates like total market cap, average P/E ratio, and top gainers/losers.
+- **Auto-Refresh**: The dashboard automatically refreshes every 5 minutes to provide the latest data.
 
-Single & Multi-Index Modes: Drill into a single index or compare up to 3 indices side by side.
+## 🚀 How to Run Locally
 
-Key Metrics & Tables: Display market cap, volatility, PE ratios, dividend yields, and top gainers/losers.
+### Prerequisites
 
-CSV Export: Download filtered, raw data for offline analysis.
+- Python 3.8 or higher
+- `pip` (Python package installer)
 
-Live Updates: Auto-refreshes every 5 minutes for the latest market information.
+### Step-by-Step Instructions
 
-Refined UI/UX: Custom CSS for smooth gradients, shadows, and modern layout.
+1.  **Clone the repository:**
+    ```bash
+    git clone [https://github.com/username/repo-name.git](https://github.com/username/repo-name.git)
+    cd repo-name
+    ```
+    *Replace `username/repo-name` with your actual GitHub username and repository name.*
 
-Screenshots
-![Dashboard Screenshot](
+2.  **Install the required libraries:**
+    ```bash
+    pip install -r requirements.txt
+    ```
+    If you don't have a `requirements.txt` file, you can create one by running:
+    ```bash
+    pip freeze > requirements.txt
+    ```
+    Or, you can install the dependencies manually:
+    ```bash
+    pip install streamlit pandas plotly-express requests streamlit-autorefresh yfinance groq
+    ```
 
-(Include your own dashboard image here)
+3.  **Set up API Keys:**
+    The application uses the **Groq API** for AI-powered market insights. You need to provide your API key.
 
-Tech Stack
-Streamlit
+    - Create a `.streamlit` folder in the root of your project.
+    - Inside this folder, create a file named `secrets.toml`.
+    - Add your Groq API key to this file:
+      ```toml
+      GROQ_API_KEY="your_groq_api_key_here"
+      ```
+    - Replace `"your_groq_api_key_here"` with your actual API key obtained from [Groq Console](https://console.groq.com/).
 
-Plotly
+4.  **Run the Streamlit app:**
+    ```bash
+    streamlit run your_app_name.py
+    ```
+    *Replace `your_app_name.py` with the name of your main Python script (e.g., `app.py` or `dashboard.py`).*
 
-yfinance
+    This command will start the web server and open the dashboard in your default web browser.
 
-Groq LLM API
+## 🤝 Contributing
 
-pandas
+Contributions are welcome! If you have suggestions for new features, bug fixes, or improvements, please feel free to open an issue or submit a pull request.
 
-Custom CSS
+1.  Fork the repository.
+2.  Create your feature branch (`git checkout -b feature/AmazingFeature`).
+3.  Commit your changes (`git commit -m 'Add some AmazingFeature'`).
+4.  Push to the branch (`git push origin feature/AmazingFeature`).
+5.  Open a pull request.
 
-Getting Started
-1. Clone the Repository
-bash
-git clone https://github.com/yourusername/nse-heatmap-dashboard.git
-cd nse-heatmap-dashboard
-2. Install Dependencies
-bash
-pip install -r requirements.txt
-3. Set Up Groq API Key
-Add your Groq API key as an environment variable or in secrets.toml:
+## 📄 License
 
-text
-GROQ_API_KEY = "your_api_key_here"
-4. Run the Application
-bash
-streamlit run app.py
-The dashboard will open automatically in your browser.
+Distributed under the MIT License. See `LICENSE` for more information.
 
-Usage
-Select an index, filter stocks, and explore the treemap and stats.
+---
 
-Switch modes for side-by-side index comparison.
-
-Download CSV for custom analysis.
-
-Read Groq-powered summaries for instant market narratives.
-
-License
-MIT License
+**Disclaimer**: This application is for informational and educational purposes only. It is not financial advice. All data is sourced from NSE India and Yahoo Finance.
