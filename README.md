@@ -2,7 +2,7 @@
 
 An interactive Streamlit web application for visualizing the performance of National Stock Exchange (NSE) indices in India. This dashboard provides a dynamic heatmap of index constituents, real-time market insights powered by Groq AI, and a clear view of market breadth and sector performance.
 
-![Dashboard Screenshot](https://raw.githubusercontent.com/username/repo-name/main/screenshot.png) ## ✨ Features
+![Dashboard Screenshot]([https://github.com/madhavarapuchandrasekharasrisai/AI-Powered-Stock-Market-Analysis-App/blob/main/dashboard%20screenshot.png]) ## ✨ Features
 
 - **Dynamic Heatmaps**: Visualize the performance of stocks within an index. The size of each rectangle can represent either market capitalization or daily percentage change, while the color indicates the stock's price movement (green for gainers, red for losers).
 - **Single & Multi-Index Modes**:
