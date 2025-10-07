@@ -116,9 +116,47 @@ def get_sector_map_from_nse_total_market():
         return {}
 
 
+import yfinance as yf
+import streamlit as st
+import pandas as pd
+
+
+@st.cache_data(ttl=86400)  # Cache data for 24 hours
+def get_sector_data_yfinance(symbols):
+
+    sector_map = {}
+    total = len(symbols)
+    progress_bar = st.progress(0)
+    status_text = st.empty()
+
+    for i, symbol in enumerate(symbols):
+        try:
+            # Fetch ticker information
+            ticker = yf.Ticker(symbol)
+            info = ticker.info
+
+            # Extract sector if available
+            if 'sector' in info and info['sector']:
+                sector_map[symbol] = info['sector']
+            else:
+                # If sector is not found, you can assign a default value
+                sector_map[symbol] = "Unknown"
+
+            # Update progress
+            status_text.info(f"Fetching sector for {symbol}... ({i + 1}/{total})")
+            progress_bar.progress((i + 1) / total)
+
+        except Exception as e:
+            # Handle cases where a symbol might be delisted or invalid
+            status_text.warning(f"Could not retrieve data for {symbol}. Skipping. Error: {e}")
+            continue
+
+    progress_bar.empty()
+    return sector_map
+
+
 @st.cache_data(ttl=300)
 def get_index_details(category):
-    """Fetch index constituents + price data from NSE."""
     headers = {
         'User-Agent': 'Mozilla/5.0',
         "Accept": "application/json,text/html",
@@ -148,32 +186,36 @@ def get_index_details(category):
 # ---------------------- NEW: GROQ API INTEGRATION ----------------------
 @st.cache_data(ttl=300)
 def get_market_details_groq(index_name, df_summary):
-    groq_api_key = "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"
+
+    groq_api_key = st.secrets.get("GROQ_API_KEY")
+
+    # Check if the key was found. If not, show an error and stop.
     if not groq_api_key:
-        return "Groq API key not configured. Please set GROQ_API_KEY in secrets.toml or as an environment variable."
+        st.error("Groq API key not configured. Please add it to your .streamlit/secrets.toml file.")
+        st.stop()
 
     client = Groq(api_key=groq_api_key)
 
     prompt = f"""
-            Summarize today’s performance of the {index_name} index on NSE using this data. the summary should be below 70 worlds :
+            Summarize today’s performance of the {index_name} index on NSE using this data. The summary should be below 70 words:
             {df_summary}
 
             In 4 simple lines, highlight:
-            1) Overall index trend (average % change & volatility),
-            2) Market cap distribution impact,
-            3) Sector performance if discernible,
+            1) Overall index trend (average % change & volatility).
+            2) Market cap distribution impact.
+            3) Sector performance if discernible.
             4) Notable sentiment or market observations.
-            Keep it concise, neutral, and data-driven.and Do not say Here's your Read me or include any pre-text
+            Keep it concise, neutral, and data-driven. Do not say "Here's your summary" or include any pre-text.
         """
 
     try:
         chat_completion = client.chat.completions.create(
             messages=[{"role": "user", "content": prompt}],
-            model="llama-3.1-8b-instant",  # Updated to a non-deprecated model
+            model="llama-3.1-8b-instant",
         )
         return chat_completion.choices[0].message.content
     except Exception as e:
-        return f"Error generating market details: {str(e)}"
+        return f"Error generating AI insights: {str(e)}"
 
 
 # ---------------------- NEW: TOTAL MARKET INSIGHTS ----------------------
@@ -437,12 +479,17 @@ else:
                 st.subheader(idx)
                 with st.spinner(f"Fetching {idx} data... 🌟"):
                     df = get_index_details(idx)
+
                 if not df.empty:
-                    with st.spinner("Gathering sector insights from NSE... 📈"):
-                        sector_map = get_sector_map_from_nse_total_market()
+                    # --- CORRECTED: Using the more reliable yfinance function ---
+                    with st.spinner(f"Gathering sector insights for {idx}... 📈"):
+                        # This ensures consistency with the single-index mode's fallback
+                        sector_map = get_sector_data_yfinance(df['yf_symbol'].tolist())
 
-                    df['sector'] = df['symbol'].map(sector_map).fillna("Unknown")
+                    df['sector'] = df['yf_symbol'].map(sector_map).fillna("Unknown")
+                    # --- END OF CORRECTION ---
 
+                    # Determine slice factor and color scale
                     if slice_by == 'Market Cap':
                         slice_factor = 'ffmc'
                         color_scale = px.colors.diverging.RdYlGn
@@ -456,19 +503,23 @@ else:
                         slice_factor = 'Abs'
                         color_scale = ['#ff7a3a', 'white']
 
-                    fig = build_treemap(df, slice_factor, color_scale, height=625)
-                    st.plotly_chart(fig, use_container_width=True)
+                    # Ensure dataframe is not empty after filtering
+                    if not df.empty:
+                        fig = build_treemap(df, slice_factor, color_scale, height=625)
+                        st.plotly_chart(fig, use_container_width=True)
 
-                    # Add pie chart below each treemap in multi-mode
-                    pie_fig = build_pie_chart(df)
-                    st.plotly_chart(pie_fig, use_container_width=True)
+                        # Add pie chart below each treemap
+                        pie_fig = build_pie_chart(df)
+                        st.plotly_chart(pie_fig, use_container_width=True)
 
-                    # New: Market details using Groq for each index
-                    df_summary = df.describe().to_string()  # Simple summary of DataFrame stats
-                    market_details = get_market_details_groq(idx, df_summary)
-                    st.markdown(
-                        f'<div class="market-details"><b>Market Insights (Powered by Groq AI):</b><br>{market_details}</div>',
-                        unsafe_allow_html=True)
+                        # Get market details from Groq AI
+                        df_summary = df.describe().to_string()
+                        market_details = get_market_details_groq(idx, df_summary)
+                        st.markdown(
+                            f'<div class="market-details"><b>Market Insights (Powered by Groq AI):</b><br>{market_details}</div>',
+                            unsafe_allow_html=True)
+                    else:
+                        st.warning(f"No data to display for '{slice_by}' in {idx}.")
                 else:
                     st.error(f"⚠ No data for {idx}. Try another index.")
     else:
